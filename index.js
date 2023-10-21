@@ -26,6 +26,7 @@ async function run() {
         await client.connect();
 
         const productsCollection = client.db('productsDB').collection('products');
+        const cartCollection = client.db('productsDB').collection('carts');
 
         // get all data from database
         app.get('/products', async (req, res) => {
@@ -81,6 +82,29 @@ async function run() {
             const result = await productsCollection.updateOne(query, product, options)
             res.send(result);
         })
+
+        // carts related APIs
+        app.post('/carts', async (req, res) => {
+            const newCartItem = req.body;
+            console.log(newCartItem);
+            const result = await cartCollection.insertOne(newCartItem);
+            res.send(result);
+        })
+
+        app.get('/carts/:userEmail', async (req, res) => {
+            const userEmail = req.params.userEmail;
+            const query = { userEmail: userEmail }
+            const result = await cartCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.delete('/carts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await cartCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
